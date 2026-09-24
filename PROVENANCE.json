@@ -2,7 +2,7 @@
   "schema_version": "researchMax-1.0",
   "project": "LFM2.5-VL-3B + DSpark on MLX",
   "created": "2026-09-24",
-  "status": "local campaign complete; no GitHub or Hugging Face publication performed",
+  "status": "public source and three MLX DFlash draft repositories published; local Apple Silicon campaign complete; no version tag created",
   "machine": {
     "os": "macOS Darwin 27.2.0",
     "arch": "arm64",
