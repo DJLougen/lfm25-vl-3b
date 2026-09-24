@@ -1,0 +1,20 @@
+.venv/
+__pycache__/
+*.py[cod]
+.DS_Store
+
+# Downloaded model checkpoints and their files
+/LFM2.5-VL-3B-*/
+*.safetensors
+/test.jpg
+
+# Downloaded benchmark photographs are inputs, not redistributed assets
+/data/images/
+
+# Local Core ML packages and large generated oracle tensors
+/ane/pkg*/
+/ane/*.npz
+/ane/e1_results.json
+/ane/e1_concurrency.py
+/ane/e1_gate.py
+/ane/export_lfm2_conv.py

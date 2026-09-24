@@ -1,0 +1,38 @@
+[
+ {
+  "id": "coco_cats",
+  "image": "data/images/coco_cats.jpg",
+  "prompt": "Describe this image in detail.",
+  "sha256": "dea9e7ef97386345f7cff32f9055da4982da5471c48d575146c796ab4563b04e"
+ },
+ {
+  "id": "coco_kitchen",
+  "image": "data/images/coco_kitchen.jpg",
+  "prompt": "Describe this image in detail.",
+  "sha256": "09e1d25c75f7879bdaa69c327fece5cabacd53939c8c2ef9e87f1c97a2e478c4"
+ },
+ {
+  "id": "coco_street",
+  "image": "data/images/coco_street.jpg",
+  "prompt": "What is happening in this image? Answer in a few sentences.",
+  "sha256": "1cf48bddb1bcab80d9f4d18514ae438c3e4f57d18e80c4fbea9d5d22396f514a"
+ },
+ {
+  "id": "coco_sports",
+  "image": "data/images/coco_sports.jpg",
+  "prompt": "Describe the scene, the people, and what they are doing.",
+  "sha256": "c6cfc7e454a432c31ac3c3a997d5f33ccebe120fc6b9465965609ce12995ede9"
+ },
+ {
+  "id": "chart_bars",
+  "image": "data/images/chart_bars.png",
+  "prompt": "Read every value from this chart and explain the overall trend.",
+  "sha256": "cc185c138523b1ae891067e40648e048408720751d9853337e5521b7bea667f5"
+ },
+ {
+  "id": "doc_page",
+  "image": "data/images/doc_page.png",
+  "prompt": "Transcribe all the text in this image exactly.",
+  "sha256": "4253d24ccc3a023301597ed1e08b98dede207990b4b927d879104352890b5892"
+ }
+]

@@ -1,0 +1,2 @@
+# Preserve Project Gutenberg source text byte-for-byte; its layout is benchmark input.
+data/book.txt -whitespace

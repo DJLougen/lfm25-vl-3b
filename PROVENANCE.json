@@ -1,0 +1,244 @@
+{
+  "schema_version": "researchMax-1.0",
+  "project": "LFM2.5-VL-3B + DSpark on MLX",
+  "created": "2026-09-24",
+  "status": "local campaign complete; no GitHub or Hugging Face publication performed",
+  "machine": {
+    "os": "macOS Darwin 27.2.0",
+    "arch": "arm64",
+    "soc": "Apple M3 Max",
+    "unified_memory_gb": 36,
+    "gpu_cores": 30
+  },
+  "environment": {
+    "python": "3.12",
+    "mlx": "0.32.2",
+    "mlx_vlm": "0.7.3",
+    "transformers": "5.17.0",
+    "evaluator": "quantization-evidence qelab 0.1.0, a separate local/private dependency intentionally excluded from this source repository"
+  },
+  "scope": {
+    "goal": "Run LiquidAI LFM2.5-VL-3B and its DSpark speculative drafter on MLX, measure lossless speculative throughput across prompt lengths, and assess target FP16/8-bit fidelity against BF16.",
+    "hardware_claim_boundary": "These are M3 Max local deployment measurements only. They do not reproduce Liquid AI's published M5 Max figures or establish results on other Apple Silicon generations.",
+    "separate_tracks": [
+      "Lossless DSpark runtime changes: exact greedy output equality is the correctness gate; throughput/acceptance is measured separately.",
+      "Target weight precision changes (BF16 to FP16 or 8-bit): distribution and task fidelity are measured separately; these candidates are lossy and are not called lossless.",
+      "Core ML / ANE prefill prototype: separate E1 engineering screen; NO-GO."
+    ]
+  },
+  "source_models": [
+    {
+      "repo": "LiquidAI/LFM2.5-VL-3B-MLX-bf16",
+      "revision": "e9679508c2af3b7e67c0d52af2a06a8c7390d2a7",
+      "local_path": "LFM2.5-VL-3B-MLX-bf16",
+      "weight_files_sha256": {
+        "model-00001-of-00002.safetensors": "5e7055e094b708e1be148802406293fee158a443440f6d26743e8027867b61cb",
+        "model-00002-of-00002.safetensors": "5aadb15b6e079e1d6a322e539b42421d92678a66320216c30dc9bdd24b283c07"
+      },
+      "tokenizer_sha256": "8096ecb9f54599d756c8de728a598a340bc1e43c0deb77ddd62456c38349fcee",
+      "license": "Upstream repo declares Liquid AI LFM1.0; see its checked-out LICENSE."
+    },
+    {
+      "repo": "LiquidAI/LFM2.5-VL-3B-MLX-8bit",
+      "revision": "8ae3db8899ed2ef7d9a0ffc52f68c4a88fbe6585",
+      "local_path": "LFM2.5-VL-3B-MLX-8bit",
+      "weight_files_sha256": {
+        "model.safetensors": "cb4b22011beb6793ab760dcd28718118e7047159758f68710e26c31bd44a5ea1"
+      },
+      "tokenizer_sha256": "8096ecb9f54599d756c8de728a598a340bc1e43c0deb77ddd62456c38349fcee",
+      "license": "Upstream repo declares Liquid AI LFM1.0; see its checked-out LICENSE."
+    },
+    {
+      "repo": "LiquidAI/LFM2.5-VL-3B-DSpark",
+      "revision": "af77e9306a26e8625fde74d2a3051ab6d21bd955",
+      "local_path": "LFM2.5-VL-3B-DSpark",
+      "weight_files_sha256": {
+        "model.safetensors": "1ee593180b41b6789d7bf01879b41ee20244ecd0ad9f66c64ddc79175aeffdfd"
+      },
+      "license": "Upstream repo declares Liquid AI LFM1.0; see its checked-out LICENSE."
+    }
+  ],
+  "derived_models": [
+    {
+      "name": "LFM2.5-VL-3B-MLX-fp16",
+      "derived_from": "LiquidAI/LFM2.5-VL-3B-MLX-bf16 at e9679508c2af3b7e67c0d52af2a06a8c7390d2a7",
+      "conversion": "mlx-vlm convert from the pinned MLX BF16 target",
+      "weight_files_sha256": {
+        "model-00001-of-00002.safetensors": "68f0730d53ad68697975a792e443636fc89cd982f12cd2c0fa132069b82ff739",
+        "model-00002-of-00002.safetensors": "ee51986bc9da31657eb9566a0c1b8508a752b2d8c7fa79630316ac691a0faf1a"
+      }
+    },
+    {
+      "name": "LFM2.5-VL-3B-DSpark-MLX-bf16",
+      "derived_from": "LiquidAI/LFM2.5-VL-3B-DSpark at af77e9306a26e8625fde74d2a3051ab6d21bd955",
+      "conversion": "convert_dspark.py; MLX-native dFlash drafter",
+      "weight_files_sha256": {
+        "model.safetensors": "80d4396d7e407f12794a151065e053206b19261c0c48c688fb0c550e5ac8f635"
+      }
+    },
+    {
+      "name": "LFM2.5-VL-3B-DSpark-MLX-8bit",
+      "derived_from": "LiquidAI/LFM2.5-VL-3B-DSpark at af77e9306a26e8625fde74d2a3051ab6d21bd955",
+      "conversion": "convert_dspark.py --q-bits 8; 8-bit affine quantization, group size 64",
+      "weight_files_sha256": {
+        "model.safetensors": "1c99bd3cf35eb0b651c61ce44596e28086cfa489499ea7eae3cafc0f992aeca4"
+      }
+    },
+    {
+      "name": "LFM2.5-VL-3B-DSpark-MLX-4bit",
+      "derived_from": "LiquidAI/LFM2.5-VL-3B-DSpark at af77e9306a26e8625fde74d2a3051ab6d21bd955",
+      "conversion": "convert_dspark.py --q-bits 4; 4-bit affine quantization, group size 64",
+      "weight_files_sha256": {
+        "model.safetensors": "431fb254296f4da77598376906e219fa105cbe2bafcf111773658c38718f6687"
+      }
+    }
+  ],
+  "input_data": {
+    "core_workload": "data/workload.json (six items); SHA-256 per image is recorded in that manifest.",
+    "independent_clusters": 7,
+    "cluster_definition": "Each of four COCO photos, the local chart, and the local document page is a separate cluster; four long-document excerpts from the same Pride and Prejudice source share one cluster.",
+    "context_sweep": "The requested book-text prefix length is 0, 8192, 16384, 32768, or 65536 tokens; the image and prompt/template tokens are additional.",
+    "public_inputs": "COCO val2017 photos are downloaded by URL and are not redistributed in the source artifact. The chart and document-page image are generated locally. The book text is the Project Gutenberg eBook of Pride and Prejudice, eBook 1342; source URL: https://www.gutenberg.org/ebooks/1342."
+  },
+  "experiments": {
+    "stageA": {
+      "artifact": "results/stageA.jsonl",
+      "purpose": "Short-prompt target/drafter quantization and block-size screen.",
+      "scope_note": "Exploratory short-prompt screen with three instructions against the same image. For each prompt/configuration, the fastest end-to-end of two repetitions was retained; results/sweep.json contains selected rows only, so best-of-two selection may be optimistic. Do not generalize to other prompts or long contexts."
+    },
+    "stageB_full_context": {
+      "artifact": "results/stageB_fullctx.jsonl",
+      "command": ".venv/bin/python ctx_bench.py --target LFM2.5-VL-3B-MLX-bf16 --drafter LFM2.5-VL-3B-DSpark-MLX-bf16 --configs base 4:fixed:0 6:fixed:0 8:fixed:0 --ctx 0 8192 16384 32768 65536 --tasks describe --max-tokens 128 --reps 2 --prefill-step 2048 --tag stageB_fullctx --out results/stageB_fullctx.jsonl",
+      "rows": 40,
+      "acceptance_gate": "For each context and repetition, the drafted greedy output SHA-256 prefix must equal the target-only output; output equality is separate from speed.",
+      "result": "40/40 output hashes match the target-only output for the same context. At 0 and 8k book tokens, speculation accelerated decode in this screen. At 32k and 64k, all tested drafter block sizes were slower than target-only; disable DSpark at these lengths on this device.",
+      "median_decode_tokens_per_second": {
+        "0": {"target_only": 49.05, "draft_block_4": 128.0, "draft_block_6": 181.61, "draft_block_8": 198.19},
+        "8192": {"target_only": 47.61, "draft_block_4": 66.83, "draft_block_6": 81.12, "draft_block_8": 78.14},
+        "16384": {"target_only": 26.45, "draft_block_4": 35.34, "draft_block_6": 63.36, "draft_block_8": 57.1},
+        "32768": {"target_only": 6.21, "draft_block_4": 5.46, "draft_block_6": 4.69, "draft_block_8": 4.37},
+        "65536": {"target_only": 6.45, "draft_block_4": 3.9, "draft_block_6": 3.4, "draft_block_8": 3.17}
+      },
+      "interpretation_limits": [
+        "Two serial repetitions per arm; not a broad performance benchmark.",
+        "At 16k, target-only raw rates were 46.68 and 6.22 tok/s; block-4 rates were 63.90 and 6.78 tok/s. Their medians are dominated by an outlier; do not use them as a stable speed result.",
+        "At 64k, output reached EOS at 84 tokens despite a 128-token cap.",
+        "Speed measurements have no hardware-specific external baseline; they are useful only for matched local comparisons."
+      ]
+    },
+    "draft_window_64k": {
+      "artifact": "results/window64k.jsonl",
+      "n": 1,
+      "config": "8-token block; 4096-token draft window; BF16 target/draft; 65536 book tokens.",
+      "result": "Output hash matches target-only. Decode 4.93 tok/s vs target-only 5.99 and 6.91; first-token 111.677 s; mean accepted span 1.886 tokens/round; peak 11.144 GB.",
+      "decision": "No-go: this window did not restore long-context speed. Single run; exploratory."
+    },
+    "quantized_target_kv_64k": {
+      "artifact": "results/kv8_fullctx.jsonl",
+      "n": 1,
+      "config": "BF16 target-only, 8-bit KV cache from prefill start, 65536 book tokens.",
+      "result": "TTFT 206.011 s, prefill 319.5 tok/s, decode 6.59 tok/s, peak 16.574 GB; text hash differs from both BF16-cache controls (5e211489b14c7f05). Controls had TTFT 91.115/89.899 s, prefill 722.6/732.6 tok/s, decode 5.99/6.91 tok/s, and peak 8.97 GB.",
+      "decision": "Do not recommend quantized KV from this screen: no clear decode gain, much slower prefill, higher measured peak allocation, and output changed. Single run; no paired fidelity evaluation."
+    },
+    "target_precision_fidelity": {
+      "artifact": "results/fidelity.json",
+      "reference": "LFM2.5-VL-3B-MLX-bf16 at e9679508c2af3b7e67c0d52af2a06a8c7390d2a7",
+      "candidates": ["LFM2.5-VL-3B-MLX-fp16", "LFM2.5-VL-3B-MLX-8bit"],
+      "method": "BF16 greedy reference trajectories; full-vocabulary logits for identical teacher-forced token histories; qelab distribution metrics; paired cluster bootstrap, equal cluster weight, 4000 repeats, seed 20260924; candidate greedy runs and task checks kept separate from lossless draft verification.",
+      "coverage": {"clusters": 7, "response_positions_per_candidate": 1745, "status": "exploratory; fewer than 30 clusters"},
+      "reference_execution_path_check": "Teacher-forced logits repeated bitwise-identically for every item. The unweighted mean of the 10 per-item teacher-forced-argmax/streaming-greedy agreement rates was 99.24%; per-item rates are in the JSON. This execution-path distinction is retained as a diagnostic, not treated as a model-quality failure.",
+      "fp16": {
+        "kl_reference_to_candidate_mean": 0.0004756559728634382,
+        "kl_reference_to_candidate_median": 0.00021820291245580733,
+        "kl_reference_to_candidate_p95": 0.0015998723309521873,
+        "total_variation_mean": 0.008465151822977537,
+        "top1_agreement_mean": 0.9862464183381089,
+        "paired_delta_nll": 0.00005643916488461341,
+        "paired_delta_nll_ci95": [-0.0007559917799471181, 0.0009128489764764251],
+        "paired_top1_difference": -0.01670425701082447,
+        "paired_top1_difference_ci95": [-0.026089369319233755, -0.008054461395178684],
+        "greedy_outputs_identical_to_reference": "1/10",
+        "chart_values_found": "5/5",
+        "document_transcription_cer": 0.0
+      },
+      "8bit": {
+        "kl_reference_to_candidate_mean": 0.0007523553375289676,
+        "kl_reference_to_candidate_median": 0.00030979757253849345,
+        "kl_reference_to_candidate_p95": 0.0023731903945967514,
+        "total_variation_mean": 0.010315825278257803,
+        "top1_agreement_mean": 0.9822349570200573,
+        "paired_delta_nll": -0.00009125972008693293,
+        "paired_delta_nll_ci95": [-0.001333904132707738, 0.00109098598147135],
+        "paired_top1_difference": -0.010523952216412485,
+        "paired_top1_difference_ci95": [-0.01693966807640879, -0.004483905461317703],
+        "greedy_outputs_identical_to_reference": "2/10",
+        "chart_values_found": "5/5",
+        "document_transcription_cer": 0.0
+      },
+      "interpretation": "The NLL intervals include zero but do not establish equivalence. Top-1 agreement is lower for both variants in this small clustered sample, and most complete greedy outputs differ from BF16. Task checks are only two narrow tasks. Do not present this as a general quality guarantee or a non-inferiority claim."
+    },
+    "coreml_ane_E1": {
+      "artifact": "ane/E1_REPORT.md",
+      "result": "NO-GO: ANE slice missed the numerical cosine gate and the measured throughput gate; concurrent engine independence does not rescue the per-layer slowdown.",
+      "decision": "Do not proceed to E2 on this implementation."
+    }
+  },
+  "closed_levers": [
+    {"lever": "DSpark speculation at 32k and 64k with fixed blocks 4/6/8", "reason": "All measured arms were slower than target-only; exact outputs do not imply a speed win."},
+    {"lever": "8-token block with 4096-token draft window at 64k", "reason": "Single run was slower than target-only despite a higher acceptance span than no-window arms."},
+    {"lever": "8-bit KV cache from prompt start at 64k", "reason": "Single run had much slower TTFT/prefill, higher peak allocation, no clear decode benefit, and a different output hash."},
+    {"lever": "Core ML/ANE layer-0/1 offload E1", "reason": "Measured numerical and throughput gates both failed."}
+  ],
+  "retracted_or_failed_checks": [
+    {
+      "check": "Initial fidelity harness required teacher-forced argmax to equal streaming greedy tokens at every position.",
+      "outcome": "The first pass stopped on coco_kitchen at position 1, although repeated teacher-forced logits were bitwise identical. A focused diagnostic found the streaming token ranked second, not first, under the forced logits. The margin was not measured, so this is recorded only as an execution-path argmax mismatch. The assertion conflated execution paths and was removed; per-item agreement is preserved in results/fidelity.json. The first failed pass is not included as an experiment result."
+    },
+    {
+      "check": "A Python probe read model.layers.parameters() to count weights.",
+      "outcome": "That attribute does not exist on this MLX model. Replaced with a traversal of flattened model parameters; the corrected probe measured 2.435B language-model matrix weights and a roughly 8.3–9.2 TFLOPS GPU compute ceiling for the measured layouts. No source model or package was changed by the failed probe."
+    }
+  ],
+  "test_gates": {
+    "qelab_test_suite": {"command": "python -m pytest <private qelab checkout>/tests -q", "result": "62 passed"},
+    "fidelity_script": {"command": ".venv/bin/python -m py_compile fidelity.py", "result": "passed"},
+    "context_sweep_completeness": {"expected_rows": 40, "observed_rows": 40, "duplicates": 0, "missing": 0},
+    "weight_and_tokenizer_sha256": "Pinned source model files were SHA-256 checked at download; their weight hashes are recorded above. The workload manifest records input SHA-256s."
+  },
+  "artifact_sha256": {
+    "results/stageA.jsonl": "bc6ceb43f5e1868dc9360833f159d82c0c482496636542c9039b6fa837bb6e37",
+    "results/stageB_fullctx.jsonl": "b7ba8544ef84855a93e45be2eab671f3361f98bec4dd76367ec169b2a1d78eda",
+    "results/window.jsonl": "0aa96113f1b3e1b99dc3bd0f6e9c57db589a120a790175a34b634032c659cf12",
+    "results/window64k.jsonl": "345d4634fca26a6e2b1889bb8a41187f1ffe623fa7c9a49fc33cfd7b6831ff3b",
+    "results/kv8_fullctx.jsonl": "2f5bed3ca559d139c11b3edd9cc27cecb467d5657485b75641aedb9d52072fcc",
+    "results/fidelity.json": "7e477ffd97bd2ef537928bccc4556f9f44ea008bf228580ff6b024d2a4c37d89",
+    "results/sweep.json": "5ddc8d2f9ea83bd5905dc128d9106d6742557b393af1de316c9e036a195a57de",
+    "results/sweep.md": "785bf482f53a73c9962d37c4c14b90d817ae99a8fd09d2234c4dc9400907b73c",
+    "ane/E1_REPORT.md": "92be9fb3aafaf783e47c67a03f7567b3456d008389cba56f86b13ec14df92875",
+    "README.md": "675612c56ab03312aa270d23cd543262d87ec7b4dbed59aa8e89864e4ca0f261"
+  },
+  "source_code_sha256": {
+    "ctx_bench.py": "96ab14ac40cc272c932e8240b7d02c517e378142e74ccce557aa88e8d1eaf29a",
+    "fidelity.py": "8d0d193b3b1d20b569b294e0ba8a48fcf0573cd536e3e52b24c678974afc9445",
+    "bench.py": "90e2ff41a7b6d07a6c35b78386623dde5ed469563c460cfafd6eece020558c9b",
+    "convert_dspark.py": "08c4e32d63d0ac8dff7f85f71e64f47fec985b38a601932a87db555d9422d4d4",
+    "dspark_runtime.py": "b54542ac9a730088ea674d3140afba97c0c010d04027099d5dca36ca12a8fedb",
+    "make_workload.py": "94cf64980c836dc453ec95b56eada2e6955873652bc8c574fd8476e1efa95beb",
+    "prefill_probe.py": "18f925df236e10640d63893f4a70f79b8aa175236e1215ca1c942a8bdcaadacb"
+  },
+  "release": {
+    "github_repository": "DJLougen/lfm25-vl-3b",
+    "huggingface_repositories": [
+      "DJLougen/LFM2.5-VL-3B-DSpark-MLX-bf16",
+      "DJLougen/LFM2.5-VL-3B-DSpark-MLX-8bit",
+      "DJLougen/LFM2.5-VL-3B-DSpark-MLX-4bit"
+    ],
+    "visibility": "public",
+    "public_upload": true,
+    "code_license": "Apache-2.0",
+    "model_artifacts_license": "Liquid AI LFM Open License v1.0; upstream model LICENSE retained in each draft repository",
+    "scope": "Benchmark/source repository plus the three documented derivative DFlash draft checkpoints only; no Liquid AI target-model weights or local environment files are published.",
+    "tag_created": false,
+    "reason": "The owner explicitly approved these public destinations and the Apache-2.0 source-code license. Each model repository retains the upstream Liquid AI model license."
+  }
+}
